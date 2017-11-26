@@ -1,7 +1,8 @@
 const byte senfront = A0;
-const byte senright = A1;
-const byte senleft = A2;
-const byte mleft1 = 0;
+const byte senleft = A1;
+const byte senright = A2;
+const byte senback = A3;
+const byte mleft1 = 0; //rename front, back
 const byte mleft2 = 1;
 const byte mleftpwm = 3;
 const byte mright1 = 2;
@@ -10,11 +11,14 @@ const byte mrightpwm = 5;
 
 const short stopdst = 900; // To be measured
 const short wall = 200; // To be measured
+const short mid = 400; // To be measured
 short error = 0;
 short diff = 0;
+short sum = 0;
 short last_error = 0;
 short kp = 2;
 short kd = 1;
+short ki = 1;
 short pwmright = 255;
 short pwmleft = 255;
 
@@ -31,7 +35,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
+  pid();
   /*
   Serial.print(analogRead(A0));
   Serial.print("\n");
@@ -40,30 +44,28 @@ void loop() {
 }
 
 void pid() {
-  //if (senright > wall && senleft > wall) {
+  if (senright > wall && senleft > wall) {
     // use two sensors
-    error = analogRead(senleft) - analogRead(senright);
-    diff = error - lasterror; 
-    last_error = error;
-    error *= kp;
-    error += diff * kd;
-    //increase left reduce right
-    pwmleft += last_error;
-    pwmright -= last_error;
-    if (pwmleft > 255) pwmleft = 255;
-    else if (pwmleft < 0) pwmleft = 0;
-    if (pwmright > 255) pwmright = 255;
-    else if (pwmright < 0) pwmright = 0;
-       
-  // }
-  /*else if (senright < wall){
+    error = analogRead(senleft) - analogRead(senright);       
+   }
+  else if (senright < wall){
     // use the left sensor
+    error = analogRead(senleft) - mid;
   }
   else if (senleft < wall){
     // use the right sensor
+    error = mid - analogRead(senright);
   }
-  else{
-    //use the last_error
-  }*/
+  diff = error - last_error;
+  sum += error;
+  last_error = error;
+  error *= kp;
+  error += diff * kd + sum * ki;
+  //increase left reduce right
+  pwmleft += last_error;
+  pwmright -= last_error;
+  if (pwmleft > 255) pwmleft = 255;
+  else if (pwmleft < 0) pwmleft = 0;
+  if (pwmright > 255) pwmright = 255;
+  else if (pwmright < 0) pwmright = 0;
 }
-
