@@ -35,6 +35,15 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  if (senleft < wall) {
+    // Turn left
+  }
+  else if (senright < wall) {
+    // Turn right
+  }
+  else if (senfront > wall) {
+    // Go backwards
+  }
   pid();
   /*
   Serial.print(analogRead(A0));

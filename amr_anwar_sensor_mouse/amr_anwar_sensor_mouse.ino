@@ -1,6 +1,6 @@
 // front, back, pwm
-int m1[] = {6, 7, 8};
-int m2[] = {9,10 , 11};
+int m1[] = {0, 1, 3};
+int m2[] = {2,4 , 5};
 int sensors[] = {A0, A1, A2, A3};
 int vel_m1 = 100 ;
 int vel_m2 = 100 ;
