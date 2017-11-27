@@ -1,8 +1,12 @@
 // front, back, pwm
-int m1[] = {6, 7, 8};
+int m1[] = {6, 7, 8}; // motor left {front, back , pwm}
 int m2[] = {9,10 , 11};
+/* A0 up
+   A1 left
+   A2 right
+*/
 int sensors[] = {A0, A1, A2, A3};
-int vel_m1 = 100 ;
+int vel_m1 = 100 ; // motor left pwn signal
 int vel_m2 = 100 ;
 bool flag = false;
 
@@ -50,7 +54,7 @@ void motor_move(int values[]){
      i = 2 right
   */
 
-  //
+  // pid code
   error = values[1] - values[2];
   diff = error - lasterror;
   lasterror = error;
