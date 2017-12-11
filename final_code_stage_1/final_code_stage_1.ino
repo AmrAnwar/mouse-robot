@@ -1,7 +1,7 @@
 // =========
 
-#define x(p) p/8
-#define y(p) p - ((p/8) * 8)
+#define y(p) p/8
+#define x(p) p - ((p/8) * 8)
 
 #define MAXPATH 20
 
@@ -35,7 +35,10 @@ static char maze[64][5] = {
   {0, 1, 1, 0, 9 }, {1, 0, 1, 0, 10}, {1, 0, 1, 0, 11}, {1, 0, 0, 0, 12}
 
 };
-
+int sh_path[MAXPATH][2];
+//
+//// sh_path
+int path[MAXPATH][2];
 // ==========
 
 
@@ -57,13 +60,6 @@ int puls_forwardd = 0 ;
 int puls_move = 0 ;
 
 
-//int maze [3][3][4] = {
-//  { {"\0\1\1\1"}, {"\0\1\1\1"}, {"\0\1\1\1"}},
-//  { {"\0\1\1\1"}, {"\0\1\1\1"}, {"\0\1\1\1"}},
-//  { {"\0\1\1\1"}, {"\0\1\1\1"}, {"\0\1\1\1"}},
-//};
-
-
 int i =0 ;
 
 int m1_forward = 4 ;
@@ -72,8 +68,6 @@ int m1_backward = 2 ;
 
 int m2_forward = 6 ;
 int m2_backward = 7 ;
-
-int path[3][3]  = { {0, 0}, {0, 2} , {1, 2} };
 
 void setup() {
  Serial.begin(9600);
@@ -103,21 +97,23 @@ char x;
 
 
 void loop() {
-  // =============
+//   =============
 
-  char s, i;
-  char *str;
+  char s;//, i;
+  //char *str;
   
   slv_maze(56, 15);
   s = flt_path();
-
-  for (i = 0; i < s; ++i){
-    Serial.print(sh_path[i][0]);
-    Serial.print(" ");
-    Serial.print(sh_path[i][1]);
-    Serial.println("------------------------");
-  }
-
+  edit_path(s);
+  //for (i = 0; i < s; ++i){
+    //Serial.print(sh_path[i][0]);
+    //Serial.print(" ");
+    //Serial.print(sh_path[i][1]);
+    //Serial.println();
+    
+  //}
+  //Serial.println();
+  //Serial.println("------------------------");
 
   // ==========
 
@@ -135,8 +131,8 @@ void loop() {
   else {flag_m=true;}      
         int *init ;
         int *next ;
-        init = path[i]; 
-        next = path[i+1];
+        init = sh_path[i]; 
+        next = sh_path[i+1];
         // edit 1/2 
         int del_x = init[0] - next[0];
         int del_y = init[1] - next[1];
@@ -144,34 +140,27 @@ void loop() {
         if (del_y < 0) del_y *= -1;
         
         int stop_count = del_x + del_y;
-        if ( (puls_move >= stop_count * 8)  && ( analogRead(A0) > 900  || analogRead(A1) > 900) ){
+        //&& geterr(path[i + 1 ] )) {
+        int stepps = 8 ;
+        if ( i <= 1 ) stepps = 9;
+        if  (puls_move >= stop_count * stepps   && (  (analogRead(A1) > 1000  && init[0] == next[0 ] )  || (analogRead(A2) > 1000  && init[ 1] == next[1] )  )){
           i++;
 //          Serial.println("i");
 //          Serial.println(i);
           puls_move = 0 ;
-          if ( i == 2 ){
+          if ( i == 7 ){
             mstop();
             flag_s = true; 
             }
+                      flag_left_rotation = true; 
+
           return loop();
-          flag_left_rotation = true; 
           }
 
         if (! flag_s ){
          if ( init[0] == next[0] && init[1] != next[1] ){
           
-           if ( init[1] > next[1]){
-                // don't know 
-            }
-           else{
-            // forward up 
-            test_forward();
-            }
-          }
-          
-         else if ( init[0] != next[0] && init[1] == next[1] ){
-
-           if ( init[0] < next[0]){
+           if ( init[1] < next[1]){
             // left 
             // forward
             
@@ -180,6 +169,32 @@ void loop() {
                            forward_fuc();
 
               left(m1_forward, m2_backward);
+              
+              }
+
+              else {
+              test_forward();
+              }
+              
+              
+           }
+           else{
+            // forward up 
+            test_forward();
+            }
+          }
+          
+         else if ( init[0] != next[0] && init[1] == next[1] ){
+
+           if ( init[0]  < next[0]){
+            // left 
+            // forward
+            
+            if ( flag_left_rotation ){
+                           flag_left_rotation = false; 
+                           forward_fuc();
+
+              left(m2_forward, m1_backward);
               
               }
 
@@ -197,9 +212,8 @@ void loop() {
             
             if ( flag_left_rotation ){
               flag_left_rotation = false; 
-              forward_fuc();
-              
-              left(m2_forward, m1_backward );
+//              forward_fuc();
+              left(m1_forward, m2_backward);
               
               }
 
@@ -224,7 +238,7 @@ void loop() {
 //----------
 
 //======
-
+//
 char stpcount;
 char pathcount;
 
@@ -312,18 +326,13 @@ char flt_path()
 
 
 
-
-
-
-
-
 //////////////
 void test_forward(){
     if(analogRead(A2)<500){forward_right();
        flag_rotation = true; 
     }
      
-     else if(analogRead(A1)<400){
+     else if(analogRead(A1)<500){
       
       flag_rotation = true; 
       forward_left();}
@@ -338,7 +347,16 @@ void left(int x_forward , int y_backward)
   delay(100);
   mstop();
   delay(300);
-  while(puls<3){
+
+//  if (analogRead(A2) < 400 ) {
+//    forward_left();
+//    delay(500);
+
+//    }
+if( i == 1 ) {
+  puls = -1 ;
+  }
+  while(puls<2){
   
        Serial.println(puls);
         digitalWrite(2,LOW);
@@ -371,41 +389,6 @@ void left(int x_forward , int y_backward)
   
   }
 
-//void left()
-//{      // Serial.print("left,left");
-//  delay(100);
-//  mstop();
-//  delay(300);
-//  while(puls<8){
-//       Serial.println(puls);
-//        digitalWrite(2,LOW);
-//        digitalWrite(4,HIGH);
-//        digitalWrite(6,HIGH);
-//        digitalWrite(7,LOW);
-//        analogWrite(3,100);
-//        analogWrite(5,0);
-//        
-//  if( digitalRead(9)){
-//    if(flag_l){
-//      puls++;  
-//      Serial.println(puls);
-//      flag_l=false;
-//      }
-//  }
-//      else{
-//        flag_l=true;}
-//  }
-//        mstop();
-//        delay(500);
-//       while(analogRead(A0) < 600 ){
-//        forward_left();
-//        }
-//        puls=0;
-//        mstop();
-//      
-//  
-//  }
-  
 void mstop(){     
   digitalWrite(2,LOW);
     digitalWrite(4,LOW);
@@ -419,7 +402,7 @@ void forward_left(){
       digitalWrite(6,LOW);
         digitalWrite(7,HIGH);
         analogWrite(3,0);
-        analogWrite(5,80);
+        analogWrite(5,70);
      Serial.print("left");
        
   }
@@ -429,7 +412,7 @@ void forward_left(){
     digitalWrite(4,LOW);
       digitalWrite(6,HIGH);
         digitalWrite(7,LOW);
-        analogWrite(3,80);
+        analogWrite(3,70);
         analogWrite(5,0);
        
      
@@ -446,7 +429,7 @@ void forward_left(){
 
   }
   void forward(){
-      if(analogRead(A0)>800){
+      if(analogRead(A0)>700){
   digitalWrite(2,LOW);
     digitalWrite(4,HIGH);
       digitalWrite(6,HIGH);
@@ -456,24 +439,27 @@ void forward_left(){
 
       
     }
-    else if (analogRead(A1) > 780  ){
-      flag_rotation = true; 
-
-      forward_left();
-
-      delay(500);
-
-      }
-          else if (analogRead(A2) > 780 ){
-                              flag_rotation = true; 
-
-      forward_right();
-
-      delay(500);
-
-      }
+//    else if (analogRead(A1) > 780  ){
+//      flag_rotation = true; 
+//      forward_right();
+//
+//
+//      delay(200);
+//
+//      }
+//          else if (analogRead(A2) > 780 ){
+//                              flag_rotation = true; 
+//
+//      forward_left();
+//
+//      delay(200);
+//
+//      }
       else{
               mstop();
+              backward();
+              delay(450);
+              test_forward();
 
         }
     }
@@ -482,8 +468,10 @@ void forward_left(){
 void forward_fuc()
 {      // Serial.print("left,left");
   mstop();
-  delay(1000);
-  while(puls_forwardd<4){
+  delay(500);
+ 
+ if ( not (analogRead(A2)  > 900 && analogRead(A1) > 900 ) ||  i >  2  ) { 
+  while(puls_forwardd<2){
   
         test_forward();
         
@@ -500,4 +488,28 @@ void forward_fuc()
   puls_forwardd = 0;
         mstop();
   
-  }    
+  }
+}    
+
+int geterr(int *pnt)
+{
+  int rds[3],p;
+  rds[0] = (analogRead(A2) > 950);
+  rds[1] = (analogRead(A0) > 950);
+  rds[2] = (analogRead(A1) > 950);
+
+  p = pnt[1] * 8 + pnt[0];
+  for (int i = 0; i < 3; i++){
+    if (rds[0] != path[p][i]) break;
+  }
+  return (i == 3) ? 1 : 0;
+}
+
+void edit_path(char s)
+{
+  char i;
+
+  for (i = 0; i < s; ++i)
+    sh_path[i][1] = 7 - sh_path[i][1];
+}
+
