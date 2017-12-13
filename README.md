@@ -1,6 +1,6 @@
 # mouse-robot
 
-
+maze in java code represent like this 
 
 0010
 1010
