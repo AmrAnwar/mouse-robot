@@ -1,6 +1,7 @@
 # mouse-robot
 
-maze for java code  represent by this:
+
+
 0010
 1010
 1110
@@ -65,3 +66,4 @@ maze for java code  represent by this:
 1010
 1011
 0001
+
